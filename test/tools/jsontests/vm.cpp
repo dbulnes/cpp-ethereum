@@ -324,7 +324,8 @@ void doVMTests(json_spirit::mValue& _v, bool _fillin)
 			{
 				Listener::ExecTimeGuard guard{i.first};
 				auto gas = static_cast<int64_t>(fev.gas);
-				output = vm->exec(fev.gas, fev, vmtrace);
+				VmExecResult execResult = vm->exec(fev.gas, fev, vmtrace);
+				output = move(execResult.output);
 				gas -= static_cast<int64_t>(fev.gas);
 				guard.setGasUsed(gas);
 			}

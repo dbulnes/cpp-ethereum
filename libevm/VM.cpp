@@ -160,7 +160,7 @@ void VM::fetchInstruction()
 //
 // interpreter entry point
 
-owning_bytes_ref VM::exec(u256& _io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp)
+VmExecResult VM::exec(u256& _io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp)
 {
 	io_gas = &_io_gas;
 	m_io_gas = uint64_t(_io_gas);
@@ -185,7 +185,7 @@ owning_bytes_ref VM::exec(u256& _io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp)
 	}
 
 	*io_gas = m_io_gas;
-	return std::move(m_output);
+	return VmExecResult(move(m_output), m_revertNeeded);
 }
 
 //
@@ -233,6 +233,25 @@ void VM::interpretCases()
 		}
 		BREAK
 
+		CASE(REVERT)
+		{
+			// Pre-metropolis
+			if (!m_schedule->haveRevert)
+				throwBadInstruction();
+
+			m_newMemSize = memNeed(*m_SP, *(m_SP - 1));
+			updateMem();
+			ON_OP();
+			updateIOGas();
+
+			uint64_t b = (uint64_t)*m_SP--;
+			uint64_t s = (uint64_t)*m_SP--;
+			m_output = owning_bytes_ref{ std::move(m_mem), b, s };
+			m_revertNeeded = true;
+			m_bounce = 0;
+		}
+		BREAK;
+
 		CASE(SUICIDE)
 		{
 			m_runGas = toInt63(m_schedule->suicideGas);
@@ -259,8 +278,8 @@ void VM::interpretCases()
 			m_bounce = 0;
 		}
 		BREAK;
-			
-			
+
+
 		//
 		// instructions potentially expanding memory
 		//

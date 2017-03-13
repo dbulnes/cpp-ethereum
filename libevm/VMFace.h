@@ -33,6 +33,13 @@ ETH_SIMPLE_EXCEPTION_VM(OutOfGas);
 ETH_SIMPLE_EXCEPTION_VM(OutOfStack);
 ETH_SIMPLE_EXCEPTION_VM(StackUnderflow);
 
+struct VmExecResult
+{
+	VmExecResult(owning_bytes_ref&& _output, bool _revertNeeded) : output(std::move(_output)), revertNeeded(_revertNeeded) {}
+
+	owning_bytes_ref output;
+	bool revertNeeded = false;
+};
 
 /// EVM Virtual Machine interface
 class VMFace
@@ -44,7 +51,7 @@ public:
 	VMFace& operator=(VMFace const&) = delete;
 
 	/// VM implementation
-	virtual owning_bytes_ref exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp) = 0;
+	virtual VmExecResult exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp) = 0;
 };
 
 }

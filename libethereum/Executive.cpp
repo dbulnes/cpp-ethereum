@@ -379,19 +379,22 @@ bool Executive::go(OnOpFunc const& _onOp)
 			auto vm = _onOp ? VMFactory::create(VMKind::Interpreter) : VMFactory::create();
 			if (m_isCreation)
 			{
-				auto out = vm->exec(m_gas, *m_ext, _onOp);
+				auto execResult = vm->exec(m_gas, *m_ext, _onOp);
 				if (m_res)
 				{
 					m_res->gasForDeposit = m_gas;
-					m_res->depositSize = out.size();
+					m_res->depositSize = execResult.output.size();
 				}
-				if (out.size() > m_ext->evmSchedule().maxCodeSize)
+
+				if (execResult.revertNeeded)
+					revert();
+				else if (execResult.output.size() > m_ext->evmSchedule().maxCodeSize)
 					BOOST_THROW_EXCEPTION(OutOfGas());
-				else if (out.size() * m_ext->evmSchedule().createDataGas <= m_gas)
+				else if (execResult.output.size() * m_ext->evmSchedule().createDataGas <= m_gas)
 				{
 					if (m_res)
 						m_res->codeDeposit = CodeDeposit::Success;
-					m_gas -= out.size() * m_ext->evmSchedule().createDataGas;
+					m_gas -= execResult.output.size() * m_ext->evmSchedule().createDataGas;
 				}
 				else
 				{
@@ -401,19 +404,26 @@ bool Executive::go(OnOpFunc const& _onOp)
 					{
 						if (m_res)
 							m_res->codeDeposit = CodeDeposit::Failed;
-						out = {};
+						execResult.output = {};
 					}
 				}
 				if (m_res)
-					m_res->output = out.toVector(); // copy output to execution result
-				m_s.setNewCode(m_ext->myAddress, out.toVector());
+					m_res->output = execResult.output.toVector(); // copy output to execution result
+
+				if (!execResult.revertNeeded)
+					m_s.setNewCode(m_ext->myAddress, execResult.output.toVector());
 			}
 			else
 			{
-				m_output = vm->exec(m_gas, *m_ext, _onOp);
+				VmExecResult execResult = vm->exec(m_gas, *m_ext, _onOp);
 				if (m_res)
 					// Copy full output:
-					m_res->output = m_output.toVector();
+					m_res->output = execResult.output.toVector();
+
+				m_output = move(execResult.output);
+
+				if (execResult.revertNeeded)
+					revert();
 			}
 		}
 		catch (VMException const& _e)

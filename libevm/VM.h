@@ -60,7 +60,7 @@ struct InstructionMetric
 class VM: public VMFace
 {
 public:
-	virtual owning_bytes_ref exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp) override final;
+	virtual VmExecResult exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp) override final;
 
 #if EVM_JUMPS_AND_SUBS
 	// invalid code will throw an exeption
@@ -93,6 +93,8 @@ private:
 
 	// return bytes
 	owning_bytes_ref m_output;
+	// whether all state changes should be reverted after returning from VM
+	bool m_revertNeeded = false;
 
 	// space for memory
 	bytes m_mem;

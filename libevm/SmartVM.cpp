@@ -87,7 +87,7 @@ namespace
 	};
 }
 
-owning_bytes_ref SmartVM::exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp)
+VmExecResult SmartVM::exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp)
 {
 	auto vmKind = VMKind::Interpreter; // default VM
 	auto mode = JitVM::scheduleToMode(_ext.evmSchedule());

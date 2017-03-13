@@ -31,7 +31,7 @@ namespace eth
 class SmartVM: public VMFace
 {
 public:
-	owning_bytes_ref exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp) override final;
+	VmExecResult exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp) override final;
 };
 
 }

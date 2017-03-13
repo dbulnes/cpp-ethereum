@@ -309,7 +309,7 @@ EVM& getJit()
 
 }
 
-owning_bytes_ref JitVM::exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp)
+VmExecResult JitVM::exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onOp)
 {
 	auto rejected = false;
 	// TODO: Rejecting transactions with gas limit > 2^63 can be used by attacker to take JIT out of scope
@@ -333,7 +333,7 @@ owning_bytes_ref JitVM::exec(u256& io_gas, ExtVMFace& _ext, OnOpFunc const& _onO
 	io_gas = r.gasLeft();
 	auto output = r.output();
 	// FIXME: Copy the output for now, but copyless version possible.
-	return {output.toVector(), 0, output.size()};
+	return VmExecResult({output.toVector(), 0, output.size()}, false);
 }
 
 evm_mode JitVM::scheduleToMode(EVMSchedule const& _schedule)
