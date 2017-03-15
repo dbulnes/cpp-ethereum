@@ -38,7 +38,11 @@ using namespace std;
 using namespace dev;
 using namespace eth;
 
-static const int64_t MaxBlockGasLimit = ChainParams(genesisInfo(Network::MainNetwork)).u256Param("maxGasLimit").convert_to<int64_t>();
+int64_t maxBlockGasLimit()
+{
+	static int64_t limit = ChainParams(genesisInfo(Network::MainNetwork)).u256Param("maxGasLimit").convert_to<int64_t>();
+	return limit;
+}
 
 void help()
 {
@@ -124,13 +128,13 @@ int main(int argc, char** argv)
 	Address sender = Address(69);
 	Address origin = Address(69);
 	u256 value = 0;
-	u256 gas = MaxBlockGasLimit;
+	u256 gas = maxBlockGasLimit();
 	u256 gasPrice = 0;
 	bool styledJson = true;
 	StandardTrace st;
 	EnvInfo envInfo;
 	Network networkName = Network::MainNetwork;
-	envInfo.setGasLimit(MaxBlockGasLimit);
+	envInfo.setGasLimit(maxBlockGasLimit());
 	bytes data;
 	bytes code;
 
