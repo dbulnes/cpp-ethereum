@@ -51,7 +51,7 @@ void help()
 		<< "Transaction options:" << endl
 		<< "    --value <n>  Transaction should transfer the <n> wei (default: 0)." << endl
 		<< "    --gas <n>    Transaction should be given <n> gas (default: block gas limit)." << endl
-		<< "    --gas-limit <n>  Block gas limit (default: " << MaxBlockGasLimit << ")." << endl
+		<< "    --gas-limit <n>  Block gas limit (default: " << maxBlockGasLimit() << ")." << endl
 		<< "    --gas-price <n>  Transaction's gas price' should be <n> (default: 0)." << endl
 		<< "    --sender <a>  Transaction sender should be <a> (default: 0000...0069)." << endl
 		<< "    --origin <a>  Transaction origin should be <a> (default: 0000...0069)." << endl
@@ -63,7 +63,7 @@ void help()
 		<< "    --vm <vm-kind>  Select VM. Options are: interpreter, jit, smart. (default: interpreter)" << endl
 #endif // ETH_EVMJIT
 		<< "Network options:" << endl
-		<< "    --network Main|Ropsten|Homestead|Frontier" << endl
+		<< "    --network Main|Ropsten|Homestead|Frontier|Metropolis" << endl
 		<< endl
 		<< "Options for trace:" << endl
 		<< "    --flat  Minimal whitespace in the JSON." << endl
@@ -192,7 +192,9 @@ int main(int argc, char** argv)
 		else if (arg == "--network" && i + 1 < argc)
 		{
 			string network = argv[++i];
-			if (network == "Frontier")
+			if (network == "Metropolis")
+				networkName = Network::MetropolisTest;
+			else if (network == "Frontier")
 				networkName = Network::FrontierTest;
 			else if (network == "Ropsten")
 				networkName = Network::Ropsten;
